@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "description": "Simple node api",
   "author": "Stéphane Castrec <contact@stephanecastrec.fr>",
+  "type": "module",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "express": "^4.17.1",

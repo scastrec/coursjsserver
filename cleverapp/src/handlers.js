@@ -1,15 +1,17 @@
-var jwt = require('express-jwt');
-var bodyParser = require('body-parser');
-var express = require('express');
+import jwt from 'express-jwt';
+import jsonwebtoken from 'jsonwebtoken';
+import bodyParser from 'body-parser';
+import express from 'express';
+
+import * as userBusiness from './users/business.js';
 
 var messages = [];
-var notes = {};
-var tokens = [];
-
 var users = [];
 
+const JWT_SECRET = process.env.JWT_SECRET || "DUMMY_SECRET";
+
 const jwtMW = jwt({
-    secret: process.env.JWT_SECRET || "DUMMY_SECRET",
+    secret: JWT_SECRET,
     algorithms: ['sha1', 'RS256', 'HS256'],
 });
 
@@ -27,55 +29,40 @@ const hello = (req, res) => {
 /** User part **/
 const signup = function (req, res) {
     var username = req.param('username', null);
-    var pwd = req.param('pwd', null);
-    var urlPhoto = req.param('urlPhoto', null);
+    var pwd = req.param('password', null);
+    var image = req.param('urlPhoto', null);
     console.log('signup ' + username);
-    if (!username || !pwd || username == 'undefined' || pwd == 'undefined') {
+    try {
+        userBusiness.signup(username, pwd, image);
+        res.status(200);
+    } catch(e) {
         res.status(400);
-        res.send("error, username or pwd undefined");
-    } else {
-        var u = getUser(username);
-        if (u) {
-            res.status(401);
-            res.send('user already exist');
-            return;
-        } else {
-            var u = {
-                username: username,
-                urlPhoto: urlPhoto,
-                pwd: pwd, //TODO hash
-                date: new Date().getTime()
-            }
-            users.push(u);
-            res.status(200);
-            res.send();
-        }
     }
+    res.send();
 }
 
 const signin = function (req, res) {
     var username = req.param('username', null);
-    var pwd = req.param('pwd', null);
+    var pwd = req.param('password', null);
     console.log('signin ' + username);
-    if (!username || !pwd || username == 'undefined' || pwd == 'undefined') {
-        console.log('signin username||pwd null' + username + ' || ' + pwd);
-        res.status(400);
-        res.send("error");
-    } else {
-        var u = getUser(username);
-        if (!u || u.pwd != pwd) {
-            console.log('signin username||pwd null' + username + ' || ' + pwd);
-            res.status(401);
-            res.send("error");
-        } else {
-            crypto.randomBytes(48, function (ex, buf) {
-                var token = buf.toString('hex');
-                tokens[token] = username;
-                res.status(200);
-                res.send('{"token":"' + token + '"}');
+    try {
+        const user = userBusiness.signin(username, pwd);
+        if (user) {
+            res.json({
+                success: true,
+                jwt: jsonwebtoken.sign({
+                    username: username,
+                    user: user,
+                }, JWT_SECRET, { expiresIn: 60 * 60 })
             });
+        } else {
+            res.status(401);
         }
+    } catch (e) {
+        console.log('Exception signin', e)
+        res.status(400);
     }
+    res.send();
 }
 
 const getUsers = function (req, res) {
@@ -115,66 +102,6 @@ const getMessages = function (req, res) {
 }
 
 
-/** Tchat part **/
-
-/**
- * add a message
- */
-const addNote = function (req, res) {
-    console.log('post note ' + JSON.stringify(req.body));
-    var msg = req.body.note;
-    var name = tokens[token];
-    var note = {
-        id: name + "_" + new Date().getTime(),
-        username: tokens[token],
-        date: new Date().getTime(),
-        note: msg,
-        done: false
-    }
-    notes[note.id] = note;
-    res.status(200);
-    res.send(JSON.stringify(note));
-}
-
-const checkNote = function (req, res) {
-    var id = req.params.id;
-    console.log('update note ' + JSON.stringify(req.body));
-    var done = req.body.done;
-    if (id in notes) {
-        var n = notes[id];
-        n.done = done;
-        notes[id] = n;
-        res.status(200);
-        res.send(JSON.stringify(n));
-    } else {
-        res.status(400);
-        return;
-    }
-}
-
-
-
-/**
- * get all messages
- */
-const getNotes = function (req, res) {
-    client.get(token, function (err, reply) {
-        if (reply) {
-            res.status(200);
-            var output = [];
-
-            for (var type in notes) {
-                output.push(notes[type]);
-            }
-            res.send(JSON.stringify(output));
-        } else {
-            res.status(401);
-            res.send('token invalid');
-        }
-    });
-}
-
-
 /*
  * Handle 404.
  */
@@ -198,7 +125,7 @@ const cors = function (req, res, next) {
 }
 
 
-exports.configExpress = (app) => {
+export const configExpress = (app) => {
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(cors);
@@ -225,10 +152,6 @@ exports.configExpress = (app) => {
 
     app.get('/messages', jwtMW, getMessages);
     app.post('/messages', jwtMW, addMessage);
-
-    app.get('/notes', jwtMW, getNotes);
-    app.post('/notes', jwtMW, addNote);
-    app.post('/notes/:id', jwtMW, checkNote);
 
     app.use(notFound);
 }
