@@ -6,6 +6,10 @@ const getUser = (username) => {
     return users.find(u => u.username = username);
 }
 
+export const getUsers = function (req, res) {
+    return users;
+}
+
 export const signup = (username, pwd, image) => {
     if (!username || !pwd) {
         throw new Error(400, "missing username or password");

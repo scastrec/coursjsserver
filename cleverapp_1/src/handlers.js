@@ -6,7 +6,6 @@ import express from 'express';
 import * as userBusiness from './users/business.js';
 
 var messages = [];
-var users = [];
 
 const JWT_SECRET = process.env.JWT_SECRET || "DUMMY_SECRET";
 
@@ -27,6 +26,13 @@ const hello = (req, res) => {
 }
 
 /** User part **/
+const getUsers = function (req, res) {
+    console.log('Get users')
+    const u = userBusiness.getUsers();
+    res.json(u);
+    res.status(200);
+}
+
 const signup = function (req, res) {
     var username = req.param('username', null);
     var pwd = req.param('password', null);
@@ -65,17 +71,6 @@ const signin = function (req, res) {
     res.send();
 }
 
-const getUsers = function (req, res) {
-    const u = users.filter(user => {
-        return {
-            username: user.username,
-            urlPhoto: user.urlPhoto,
-            date: user.date
-        }
-    })
-    res.send(JSON.stringify(u));
-}
-
 /**
  * add a message
  */
@@ -107,7 +102,7 @@ const getMessages = function (req, res) {
  */
 const notFound = (req, res, next) => {
     res.setHeader('Content-Type', 'text/plain');
-    res.send(404, 'Page introuvable !');
+    res.status(404).send('Page introuvable !');
 };
 
 const doc = (express.static('./html/docapi'));
@@ -132,7 +127,7 @@ export const configExpress = (app) => {
     app.use('/', doc);
     app.use(jwtMW.unless({
         path:
-            ['/', '/ping', '/hello', '/signin', '/signup', '/img']
+            ['/', '/ping', '/hello', '/signin', '/signup', '/users', '/img']
     }));
     app.use(function (err, req, res, next) {
         console.log("JWT error handler", err);
@@ -148,7 +143,7 @@ export const configExpress = (app) => {
     app.post('/signin', signin);
     app.post('/signup', signup);
 
-    app.get('/users', jwtMW, getUsers);
+    app.get('/users', getUsers);
 
     app.get('/messages', jwtMW, getMessages);
     app.post('/messages', jwtMW, addMessage);
