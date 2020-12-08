@@ -39,7 +39,7 @@ export const signin = (username, pwd) => {
     } else {
         var u = getUser(username);
         if (!u || bcrypt.compareSync(pwd, u.password)) {
-            console.log('signin pwd incorrect' + username);
+            console.log('Authentication OK' + username);
             return u;
         } else {
             return null;

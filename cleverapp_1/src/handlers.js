@@ -4,8 +4,7 @@ import bodyParser from 'body-parser';
 import express from 'express';
 
 import * as userBusiness from './users/business.js';
-
-var messages = [];
+import * as msgBusiness from './messages/business.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || "DUMMY_SECRET";
 
@@ -77,23 +76,23 @@ const signin = function (req, res) {
 const addMessage = function (req, res) {
     console.log('post message ' + JSON.stringify(req.body));
     var msg = req.body.message;
-    var message = {
-        id: tokens[token] + "_" + new Date().getTime(),
-        username: tokens[token],
-        date: new Date().getTime(),
-        message: msg
+    const user = req.user;
+    try {
+        msgBusiness.addMessage(msg, user.username)
+        res.status(200);
+        res.send();
+    } catch(e) {
+        res.status(e.status).send(e);
     }
-    messages.push(message);
-    res.status(200);
-    res.send();
 }
 
 /**
  * get all messages
  */
 const getMessages = function (req, res) {
-    res.status(200);
-    res.send(JSON.stringify(messages));
+    console.log('get messages')
+    const msgs = msgBusiness.getMessages();
+    res.json(msgs);
 }
 
 

@@ -13,10 +13,6 @@
     {
       "resource": "User",
       "json": "user.json"
-    },
-      {
-      "resource": "Note",
-      "json": "note.json"
     }
   ]
 }
