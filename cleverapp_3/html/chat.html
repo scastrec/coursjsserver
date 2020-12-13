@@ -1,0 +1,41 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Notre chat</title>
+
+    <link rel="stylesheet" type="text/css" href="./messages.css" />
+</head>
+
+<body>
+
+    <header>
+        <h1><a href="#">Mon Chat</a></h1>
+    </header>
+
+    <div>
+        <h2>Les messages ici</h2>
+        <ul id="messages">
+
+        </ul>
+
+    </div>
+
+    <form id="message-form">
+        <div class="form-message">
+            <label for="username">Votre message: </label>
+            <input type="text" name="message" id="message" required>
+        </div>
+        <div class="form-example">
+            <input  type="button" onclick="addMessage()" value="Poster!">
+        </div>
+    </form>
+
+
+    <footer>Enjoying Javascript</footer>
+</body>
+
+<script type="text/javascript" src="./messages.js"></script>
+
+</html>

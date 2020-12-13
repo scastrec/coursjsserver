@@ -1,0 +1,21 @@
+{
+  "name": "ApiCesi",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Simple node api",
+  "author": "Stéphane Castrec <contact@stephanecastrec.fr>",
+  "type": "module",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.17.1",
+    "express-jwt": "^5.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb": "^3.6.3"
+  },
+  "scripts": {
+    "start": "node main.js"
+  },
+  "engines": {
+    "node": ">=0.6"
+  }
+}
